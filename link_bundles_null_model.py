@@ -39,12 +39,12 @@ def master():
    lon = np.load(prefix + '%s_lon_global.npy'%data)
 
    c = 0
-   for perc in [80, 85, 90, 94, 95, 96]:
-      print perc
-      for tm in [3,10,30]:
-         print "tm = ", tm
-         for region in regions:
-            print "region: ", region
+   for perc in [80, 85, 90, 94, 95, 96]: #perc = 95
+      print(perc)
+      for tm in [3,10,30]: #tm = 10
+         print("tm = ", tm)
+         for region in regions: #region = 'nism'
+            print("region: ", region)
 
             if region == 'sam2':
                j = 0
@@ -68,42 +68,42 @@ def master():
 
             index = np.unique(index)
 
-            links = np.load('%s_geo_links_samples_perc%d_tm%d_season%d_%s_nb_sig005.npy'%(data, perc, tm, j, region))
+            links = np.load('%s_geo_links_samples_perc%d_tm%d_season%d_%s_nb_sig005.npy'%(data, perc, tm, j, region)) #all links connected to NISM region
 
-            print "nol = ", links.shape[0]
+            print("nol = ", links.shape[0]) #number of links connected to NISM
             index = get_index_from_coord(lat, lon, lat_t, lon_t)
 
             from itertools import product
             coords = np.array(list(product(lat, lon)))
-            lat0 = coords[index, 0]
+            lat0 = coords[index, 0] #center for KDE
             lon0 = coords[index, 1]
             lat1 = coords[links, 0]
             lon1 = coords[links, 1]
             nol = links.shape[0]
 
-            values = np.vstack([coords[links, 0], coords[links, 1]]).T
+            values = np.vstack([coords[links, 0], coords[links, 1]]).T #locations of links connected to NISM
             values *= np.pi / 180.
             X, Y = np.meshgrid(lon, lat)
             xy = np.vstack([Y.ravel(), X.ravel()]).T
-            xy *= np.pi / 180.
+            xy *= np.pi / 180. #all coordinates
 
             bw_opt = .2 * values.shape[0]**(-1./(2+4))
-            print ".2 * bw_scott = ", bw_opt
+            print(".2 * bw_scott = ", bw_opt)
 
             nos = 15
             ser = 35
             dats = np.zeros((nos * ser, X.shape[0], X.shape[1]))
-            for k in xrange(ser):
-               for i in xrange(nos):
+            for k in range(ser):
+               for i in range(nos):
                   noel2 = np.where(events > 2)[0]
-                  values = np.vstack([np.random.choice(coords[noel2, 0], nol), np.random.choice(coords[noel2, 1], nol)]).T
+                  values = np.vstack([np.random.choice(coords[noel2, 0], nol), np.random.choice(coords[noel2, 1], nol)]).T #choose nol locations from the noel2 locations which have >2 events
                   values *= np.pi / 180.
                   mpi.submit_call("shperical_kde", (values, xy, bw_opt), id = c * nos * ser + k * nos + i)
-                  print "bash %d submitted"%(k * nos + i)
-               for i in xrange(nos):
+                  print("bash %d submitted"%(k * nos + i))
+               for i in range(nos):
                   datss = mpi.get_result(id = c * nos * ser + k * nos + i)
                   dats[k * nos + i] = datss.reshape(X.shape)
-                  print "bash %d picked up"%(k * nos + i)
+                  print("bash %d picked up"%(k * nos + i))
             np.save(prefix2 + '%s_geo_link_tc_sphkde_nm_perc%d_tm%d_season%d_%s_bw02_nb'%(data, perc, tm, j, region), dats)
             mean = np.mean(dats, axis = 0)
             std = np.std(dats, axis = 0)

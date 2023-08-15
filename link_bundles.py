@@ -34,12 +34,12 @@ print data
 lat = np.load(prefix + '%s_lat_global.npy'%data)
 lon = np.load(prefix + '%s_lon_global.npy'%data)
 
-for perc in [80,85, 90, 94, 95, 96]:
+for perc in [80,85, 90, 94, 95, 96]: #perc = 95
 
-   for tm in [3,10,30]:
+   for tm in [3,10,30]: #tm = 10
       print perc
       print "tm = ", tm
-      for region in regions:
+      for region in regions: #region = nism
          print "region: ", region
 
          if region == 'sam2':
@@ -68,12 +68,12 @@ for perc in [80,85, 90, 94, 95, 96]:
          index = np.unique(index)
 
          for l in xrange(index.shape[0]):
-            links = np.concatenate((links, nlist[cu_deg[index[l]] : cu_deg[index[l] + 1]]))
+            links = np.concatenate((links, nlist[cu_deg[index[l]] : cu_deg[index[l] + 1]])) #assemble all links connected to lat_t,lon_t box
             gdists = np.concatenate((gdists, ang_dist_all[cu_deg[index[l]] : cu_deg[index[l] + 1]]))
          print "nol = ", links.shape[0]
          selector = np.zeros(links.shape[0], dtype = 'int')
          selector[:10000] = 1
-         selector = np.random.permutation(selector)
+         selector = np.random.permutation(selector) #randomly select 10000 links
          links = links[selector == 1]
          gdists = gdists[selector == 1]
 
