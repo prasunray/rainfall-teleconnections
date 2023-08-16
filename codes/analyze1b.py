@@ -6,6 +6,7 @@ import scipy.stats as st
 from time import time
 from numba import jit
 fname1 = 'SCA_prec.npy'
+fname2 = 'west_Aus_prec.npy'
 
 #----- Load data and organize varianbles -----#
 
@@ -19,6 +20,9 @@ M,nloc1 = d1.shape #number of days, number of locations
 Nd = M//Ny #number of days/yr
 d1y = d1.reshape(Ny,Nd,nloc1)
 
+M,nloc2 = d2.shape
+Nd = M//Ny
+d2y = d2.reshape(Ny,Nd,nloc2)
 days = np.zeros((Ny,Nd),dtype=int)
 for i in range(Ny):
     days[i,:] = np.arange(Nd,dtype=int)+i*365
@@ -67,7 +71,7 @@ def compute_ERE(dat,nloc,days1d):
 t1 = time()
 
 ere1_all,counts1,x951_all = compute_ERE(d1,nloc1,days1d)
-ere2_all,counts2,x952_all = compute_ERE(d2,nloc2,days1d)
+ere2_all,counts2,x952_all = ere1_all,counts1,x951_all
 
 #Check if EREs match SCA data
 dshift = 151
@@ -131,14 +135,6 @@ for count1,e1 in enumerate(ere1_all):
                 es[count1,count2]=es12
 
 
-#Check if es matches data in SCA_westAus_siglink.npy
-com = []
-R = np.load('SCA_westAus_siglinks.npy')
-for r in R:
-    x=es[r[0],r[1]]
-    com.append([x,r[2],x-r[2]])
-com = np.array(com) #com[:,2] should be all zeros
-
 
 #----- Null model ES calculation -----#
 
@@ -148,8 +144,6 @@ for c1 in counts1:
     for c2 in counts2:
         if (c2,c1) not in pairs:
             pairs.add((c1,c2))
-
-
 
 reps = 2000
 i = 0
